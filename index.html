@@ -20,848 +20,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Security Headers -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://wa.me;">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-Frame-Options" content="DENY">
-  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-  
-  <!-- Anti-Bot Protection -->
-  <meta name="robots" content="noindex, nofollow">
-  
-  <!-- Security Scripts -->
-  <script>
-    // Anti-Hacker and Anti-Data Theft System
-    (function() {
-      'use strict';
-      
-      // Security Configuration
-      const SECURITY_CONFIG = {
-        maxRequestsPerMinute: 50, // Aumentado para permitir mais requisições
-        maxFormSubmissionsPerHour: 20, // Aumentado para permitir mais envios
-        sessionTimeout: 30 * 60 * 1000, // 30 minutes
-        encryptionKey: 'infotech_secure_2024',
-        
-        // DDoS Protection Configuration
-        ddosProtection: {
-          maxRequestsPerSecond: 5,
-          maxConcurrentConnections: 3,
-          burstThreshold: 10,
-          burstTimeWindow: 5000, // 5 seconds
-          cooldownPeriod: 30000, // 30 seconds
-          suspiciousIPs: new Set(),
-          connectionHistory: new Map(),
-          lastCleanup: Date.now(),
-          ddosMode: false,
-          ddosLevel: 0, // 0: normal, 1: warning, 2: danger, 3: critical
-          mitigationStrategies: [
-            'rate_limiting',
-            'request_filtering',
-            'bot_detection',
-            'resource_limiting',
-            'session_management'
-          ]
-        },
-        
-        suspiciousPatterns: [
-          /<script/i,
-          /javascript:/i,
-          /on\w+\s*=/i,
-          /eval\s*\(/i,
-          /document\./i,
-          /window\./i,
-          /alert\s*\(/i,
-          /confirm\s*\(/i,
-          /prompt\s*\(/i,
-          /innerHTML/i,
-          /outerHTML/i,
-          /insertAdjacentHTML/i
-        ]
-      };
-      
-      // Security State
-      let securityState = {
-        requestCount: 0,
-        lastRequestTime: Date.now(),
-        formSubmissions: 0,
-        lastFormSubmission: 0,
-        sessionStart: Date.now(),
-        blockedIPs: new Set(),
-        suspiciousActivities: [],
-        encryptionIV: null
-      };
-      
-      // Initialize security
-      function initSecurity() {
-        // Generate random IV for encryption
-        securityState.encryptionIV = crypto.getRandomValues(new Uint8Array(16));
-        
-        // Set up security monitoring
-        setupSecurityMonitoring();
-        
-        // Initialize rate limiting
-        setupRateLimiting();
-        
-        // Initialize DDoS protection
-        setupDDoSProtection();
-        
-        // Set up session timeout
-        setupSessionTimeout();
-        
-        // Monitor for suspicious activities
-        setupActivityMonitoring();
-        
-        console.log('🔒 Sistema de Segurança Anti-Hacker Ativado');
-        console.log('🛡️ Sistema Anti-DDoS Ativado');
-      }
-      
-      // Input Sanitization and Validation - OTIMIZADO para velocidade
-      function sanitizeInput(input) {
-        if (typeof input !== 'string') return '';
-        
-        // Sanitização RÁPIDA - apenas o essencial
-        let sanitized = input
-          .replace(/[<>]/g, '') // Remove < and > apenas
-          .trim();
-        
-        // Verificação rápida de padrões suspeitos (apenas os mais críticos)
-        if (sanitized.toLowerCase().includes('javascript:') || 
-            sanitized.toLowerCase().includes('onclick') ||
-            sanitized.toLowerCase().includes('eval(')) {
-          logSuspiciousActivity('XSS Attempt', { input: input, sanitized: sanitized });
-          return '';
-        }
-        
-        return sanitized;
-      }
-      
-      // Data Encryption - OTIMIZADO para velocidade
-      function encryptData(data) {
-        try {
-          // Criptografia RÁPIDA - apenas para dados básicos
-          const jsonString = JSON.stringify(data);
-          const key = SECURITY_CONFIG.encryptionKey;
-          let encrypted = '';
-          
-          for (let i = 0; i < jsonString.length; i++) {
-            encrypted += String.fromCharCode(jsonString.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-          }
-          
-          return btoa(encrypted);
-        } catch (error) {
-          console.error('Erro na criptografia:', error);
-          return null;
-        }
-      }
-      
-      // Data Decryption - OTIMIZADO para velocidade
-      function decryptData(encryptedData) {
-        try {
-          const encrypted = atob(encryptedData);
-          const key = SECURITY_CONFIG.encryptionKey;
-          let decrypted = '';
-          
-          for (let i = 0; i < encrypted.length; i++) {
-            decrypted += String.fromCharCode(encrypted.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-          }
-          
-          return JSON.parse(decrypted);
-        } catch (error) {
-          console.error('Erro na descriptografia:', error);
-          return null;
-        }
-      }
-      
-      // Rate Limiting
-      function setupRateLimiting() {
-        const now = Date.now();
-        
-        // Reset counter if more than 1 minute has passed
-        if (now - securityState.lastRequestTime > 60000) {
-          securityState.requestCount = 0;
-          securityState.lastRequestTime = now;
-        }
-        
-        securityState.requestCount++;
-        
-        // Block if too many requests
-        if (securityState.requestCount > SECURITY_CONFIG.maxRequestsPerMinute) {
-          logSuspiciousActivity('Rate Limit Exceeded', { 
-            requestCount: securityState.requestCount,
-            timeWindow: now - securityState.lastRequestTime 
-          });
-          return false;
-        }
-        
-        return true;
-      }
-      
-      // Form Submission Security
-      function validateFormSubmission() {
-        const now = Date.now();
-        
-        // Check hourly limit - mais permissivo
-        if (now - securityState.lastFormSubmission < 3600000) { // 1 hour
-          securityState.formSubmissions++;
-          
-          if (securityState.formSubmissions > SECURITY_CONFIG.maxFormSubmissionsPerHour) {
-            logSuspiciousActivity('Form Submission Limit Exceeded', {
-              submissions: securityState.formSubmissions,
-              timeWindow: now - securityState.lastFormSubmission
-            });
-            // Retorna true mesmo se exceder o limite para não bloquear usuários legítimos
-            return true;
-          }
-        } else {
-          securityState.formSubmissions = 1;
-          securityState.lastFormSubmission = now;
-        }
-        
-        return true;
-      }
-      
-      // DDoS Protection System
-      function setupDDoSProtection() {
-        // Initialize DDoS protection monitoring
-        setupDDoSMonitoring();
-        
-        // Set up connection tracking
-        setupConnectionTracking();
-        
-        // Set up resource limiting
-        setupResourceLimiting();
-        
-        // Set up automatic cleanup
-        setInterval(cleanupDDoSData, 60000); // Clean up every minute
-      }
-      
-      // DDoS Monitoring
-      function setupDDoSMonitoring() {
-        // Track page loads and requests
-        let requestCount = 0;
-        let lastRequestTime = Date.now();
-        
-        // Monitor for rapid page reloads (common DDoS pattern)
-        window.addEventListener('beforeunload', () => {
-          const now = Date.now();
-          if (now - lastRequestTime < 1000) { // Less than 1 second between requests
-            requestCount++;
-            if (requestCount > SECURITY_CONFIG.ddosProtection.maxRequestsPerSecond) {
-              logDDoSAttack('Rapid Page Reloads Detected', {
-                requestCount: requestCount,
-                timeWindow: now - lastRequestTime
-              });
-            }
-          } else {
-            requestCount = 1;
-          }
-          lastRequestTime = now;
-        });
-        
-        // Monitor for excessive DOM manipulations
-        let domChanges = 0;
-        const observer = new MutationObserver(() => {
-          domChanges++;
-          if (domChanges > 1000) { // Excessive DOM changes
-            logDDoSAttack('Excessive DOM Manipulation', {
-              changes: domChanges
-            });
-            domChanges = 0;
-          }
-        });
-        
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-          attributes: true
-        });
-        
-        // Monitor for excessive event listeners
-        let eventCount = 0;
-        const originalAddEventListener = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-          eventCount++;
-          if (eventCount > 500) { // Too many event listeners
-            logDDoSAttack('Excessive Event Listeners', {
-              count: eventCount,
-              type: type
-            });
-          }
-          return originalAddEventListener.call(this, type, listener, options);
-        };
-      }
-      
-      // Connection Tracking
-      function setupConnectionTracking() {
-        // Track unique connections using various identifiers
-        const connectionId = generateConnectionId();
-        
-        // Store connection info
-        const connectionInfo = {
-          id: connectionId,
-          timestamp: Date.now(),
-          userAgent: navigator.userAgent,
-          referrer: document.referrer,
-          screenResolution: `${screen.width}x${screen.height}`,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          language: navigator.language
-        };
-        
-        // Store in connection history
-        const ddos = SECURITY_CONFIG.ddosProtection;
-        ddos.connectionHistory.set(connectionId, connectionInfo);
-        
-        // Check for suspicious connection patterns
-        checkSuspiciousConnections();
-      }
-      
-      // Generate unique connection ID
-      function generateConnectionId() {
-        const timestamp = Date.now();
-        const random = Math.random().toString(36).substring(2);
-        const userAgent = navigator.userAgent.substring(0, 10);
-        return `${timestamp}_${random}_${userAgent}`;
-      }
-      
-      // Check for suspicious connections
-      function checkSuspiciousConnections() {
-        const ddos = SECURITY_CONFIG.ddosProtection;
-        const now = Date.now();
-        const recentConnections = [];
-        
-        // Get recent connections (last 5 minutes)
-        for (let [id, info] of ddos.connectionHistory) {
-          if (now - info.timestamp < 300000) { // 5 minutes
-            recentConnections.push(info);
-          }
-        }
-        
-        // Check for identical user agents (bot farm indicator)
-        const userAgents = recentConnections.map(c => c.userAgent);
-        const uniqueUserAgents = new Set(userAgents);
-        
-        if (recentConnections.length > 10 && uniqueUserAgents.size < 3) {
-          logDDoSAttack('Suspicious Connection Pattern - Identical User Agents', {
-            totalConnections: recentConnections.length,
-            uniqueUserAgents: uniqueUserAgents.size
-          });
-        }
-        
-        // Check for rapid connections from same source
-        const connectionsByTime = recentConnections.sort((a, b) => a.timestamp - b.timestamp);
-        for (let i = 0; i < connectionsByTime.length - 1; i++) {
-          const timeDiff = connectionsByTime[i + 1].timestamp - connectionsByTime[i].timestamp;
-          if (timeDiff < 100) { // Less than 100ms between connections
-            logDDoSAttack('Rapid Connection Sequence Detected', {
-              timeDiff: timeDiff,
-              connectionCount: connectionsByTime.length
-            });
-          }
-        }
-      }
-      
-      // Resource Limiting
-      function setupResourceLimiting() {
-        // Monitor memory usage
-        if (performance.memory) {
-          setInterval(() => {
-            const memoryUsage = performance.memory.usedJSHeapSize;
-            const memoryLimit = 50 * 1024 * 1024; // 50MB limit
-            
-            if (memoryUsage > memoryLimit) {
-              logDDoSAttack('Memory Usage Exceeded', {
-                usage: memoryUsage,
-                limit: memoryLimit
-              });
-              
-              // Force garbage collection if available
-              if (window.gc) {
-                window.gc();
-              }
-            }
-          }, 5000); // Check every 5 seconds
-        }
-        
-        // Monitor CPU usage through performance
-        let lastTime = performance.now();
-        let frameCount = 0;
-        
-        function checkCPUUsage() {
-          frameCount++;
-          const currentTime = performance.now();
-          
-          if (currentTime - lastTime >= 1000) { // Every second
-            const fps = frameCount * 1000 / (currentTime - lastTime);
-            
-            if (fps < 10) { // Very low FPS indicates resource exhaustion
-              logDDoSAttack('Low Performance Detected', {
-                fps: fps,
-                frameCount: frameCount
-              });
-            }
-            
-            frameCount = 0;
-            lastTime = currentTime;
-          }
-          
-          requestAnimationFrame(checkCPUUsage);
-        }
-        
-        checkCPUUsage();
-      }
-      
-      // DDoS Attack Detection and Logging
-      function logDDoSAttack(type, data) {
-        const attack = {
-          type: type,
-          data: data,
-          timestamp: new Date().toISOString(),
-          ddosLevel: SECURITY_CONFIG.ddosProtection.ddosLevel,
-          mitigationStrategies: SECURITY_CONFIG.ddosProtection.mitigationStrategies,
-          userAgent: navigator.userAgent,
-          url: window.location.href
-        };
-        
-        // Update DDoS level based on attack severity
-        updateDDoSLevel(type);
-        
-        // Log to security system
-        logSuspiciousActivity(`DDoS Attack: ${type}`, data);
-        
-        // Store DDoS specific logs
-        try {
-          const ddosLogs = JSON.parse(localStorage.getItem('ddos_logs') || '[]');
-          ddosLogs.push(attack);
-          localStorage.setItem('ddos_logs', JSON.stringify(ddosLogs.slice(-100))); // Keep last 100
-        } catch (error) {
-          console.error('Erro ao salvar log DDoS:', error);
-        }
-        
-        // Apply mitigation strategies
-        applyDDoSMitigation(type);
-      }
-      
-      // Update DDoS Level
-      function updateDDoSLevel(attackType) {
-        const ddos = SECURITY_CONFIG.ddosProtection;
-        
-        switch (attackType) {
-          case 'Rapid Page Reloads Detected':
-          case 'Excessive DOM Manipulation':
-            ddos.ddosLevel = Math.min(ddos.ddosLevel + 1, 3);
-            break;
-          case 'Suspicious Connection Pattern':
-          case 'Rapid Connection Sequence Detected':
-            ddos.ddosLevel = Math.min(ddos.ddosLevel + 2, 3);
-            break;
-          case 'Memory Usage Exceeded':
-          case 'Low Performance Detected':
-            ddos.ddosLevel = 3; // Critical
-            break;
-        }
-        
-        // Activate DDoS mode if level is high
-        if (ddos.ddosLevel >= 2) {
-          ddos.ddosMode = true;
-          console.warn(`🚨 DDoS Mode Ativado - Nível ${ddos.ddosLevel}`);
-        }
-      }
-      
-      // Apply DDoS Mitigation Strategies
-      function applyDDoSMitigation(attackType) {
-        const ddos = SECURITY_CONFIG.ddosProtection;
-        
-        if (ddos.ddosMode) {
-          // Level 1: Warning - Apply basic protections
-          if (ddos.ddosLevel >= 1) {
-            // Reduce resource usage
-            disableNonEssentialFeatures();
-          }
-          
-          // Level 2: Danger - Apply aggressive protections
-          if (ddos.ddosLevel >= 2) {
-            // Implement request filtering
-            implementRequestFiltering();
-          }
-          
-          // Level 3: Critical - Apply emergency protections
-          if (ddos.ddosLevel >= 3) {
-            // Emergency mode
-            activateEmergencyMode();
-          }
-        }
-      }
-      
-      // Disable non-essential features during DDoS
-      function disableNonEssentialFeatures() {
-        // Disable animations and transitions
-        const style = document.createElement('style');
-        style.textContent = `
-          *, *::before, *::after {
-            animation: none !important;
-            transition: none !important;
-          }
-        `;
-        document.head.appendChild(style);
-        
-        // Reduce event listeners
-        const elements = document.querySelectorAll('button, input, a');
-        elements.forEach(el => {
-          el.style.pointerEvents = 'none';
-        });
-        
-        console.log('🛡️ Recursos não essenciais desabilitados durante DDoS');
-      }
-      
-      // Implement request filtering
-      function implementRequestFiltering() {
-        // Block suspicious requests
-        const originalFetch = window.fetch;
-        window.fetch = function(url, options) {
-          // Check if request is suspicious
-          if (isSuspiciousRequest(url, options)) {
-            logDDoSAttack('Suspicious Request Blocked', { url: url });
-            return Promise.reject(new Error('Request blocked by DDoS protection'));
-          }
-          return originalFetch.call(this, url, options);
-        };
-        
-        console.log('🛡️ Filtro de requisições ativado');
-      }
-      
-      // Check if request is suspicious
-      function isSuspiciousRequest(url, options) {
-        const ddos = SECURITY_CONFIG.ddosProtection;
-        
-        // Block requests to suspicious domains
-        const suspiciousDomains = ['bot', 'crawler', 'scraper', 'ddos'];
-        const urlLower = url.toLowerCase();
-        
-        for (let domain of suspiciousDomains) {
-          if (urlLower.includes(domain)) {
-            return true;
-          }
-        }
-        
-        // Block rapid requests
-        const now = Date.now();
-        if (now - ddos.lastRequestTime < 100) { // Less than 100ms between requests
-          return true;
-        }
-        
-        ddos.lastRequestTime = now;
-        return false;
-      }
-      
-      // Activate emergency mode
-      function activateEmergencyMode() {
-        // Show emergency message
-        const emergencyDiv = document.createElement('div');
-        emergencyDiv.id = 'ddos-emergency';
-        emergencyDiv.innerHTML = `
-          <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                       background: rgba(220, 53, 69, 0.95); z-index: 9999; 
-                       display: flex; align-items: center; justify-content: center; 
-                       color: white; font-family: Arial, sans-serif; text-align: center;">
-            <div>
-              <h1>🚨 MODO DE EMERGÊNCIA ATIVADO</h1>
-              <p>Detectamos um possível ataque DDoS.</p>
-              <p>O sistema está protegendo seus dados.</p>
-              <p>Por favor, aguarde...</p>
-              <div style="margin-top: 20px;">
-                <div style="width: 50px; height: 50px; border: 3px solid white; 
-                            border-top: 3px solid transparent; border-radius: 50%; 
-                            animation: spin 1s linear infinite; margin: 0 auto;"></div>
-              </div>
-            </div>
-          </div>
-          <style>
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-        `;
-        
-        document.body.appendChild(emergencyDiv);
-        
-        // Remove emergency mode after 30 seconds
-        setTimeout(() => {
-          const emergency = document.getElementById('ddos-emergency');
-          if (emergency) {
-            emergency.remove();
-          }
-        }, 30000);
-        
-        console.log('🚨 Modo de emergência ativado');
-      }
-      
-      // Cleanup DDoS data
-      function cleanupDDoSData() {
-        const ddos = SECURITY_CONFIG.ddosProtection;
-        const now = Date.now();
-        
-        // Clean up old connection history
-        for (let [id, info] of ddos.connectionHistory) {
-          if (now - info.timestamp > 300000) { // 5 minutes
-            ddos.connectionHistory.delete(id);
-          }
-        }
-        
-        // Reset DDoS level if no recent attacks
-        if (now - ddos.lastCleanup > 300000) { // 5 minutes
-          ddos.ddosLevel = Math.max(0, ddos.ddosLevel - 1);
-          ddos.ddosMode = ddos.ddosLevel > 0;
-          ddos.lastCleanup = now;
-        }
-      }
-      
-      // Session Management
-      function setupSessionTimeout() {
-        setInterval(() => {
-          const now = Date.now();
-          if (now - securityState.sessionStart > SECURITY_CONFIG.sessionTimeout) {
-            // Clear sensitive data
-            localStorage.removeItem('chamados');
-            securityState.sessionStart = now;
-            console.log('🔒 Sessão expirada - dados sensíveis removidos');
-          }
-        }, 60000); // Check every minute
-      }
-      
-      // Activity Monitoring
-      function setupActivityMonitoring() {
-        // Monitor keyboard events for suspicious patterns
-        document.addEventListener('keydown', (e) => {
-          // Detect rapid key presses (potential automation)
-          const keyPressTime = Date.now();
-          if (keyPressTime - (securityState.lastKeyPress || 0) < 50) {
-            logSuspiciousActivity('Rapid Key Presses Detected', {
-              key: e.key,
-              timestamp: keyPressTime
-            });
-          }
-          securityState.lastKeyPress = keyPressTime;
-        });
-        
-        // Monitor mouse movements for bot detection
-        let mouseMovements = 0;
-        document.addEventListener('mousemove', () => {
-          mouseMovements++;
-          if (mouseMovements > 1000) { // Too many movements
-            logSuspiciousActivity('Excessive Mouse Movements', {
-              movements: mouseMovements
-            });
-            mouseMovements = 0;
-          }
-        });
-        
-        // Monitor for right-click attempts (common in bot attacks)
-        document.addEventListener('contextmenu', (e) => {
-          logSuspiciousActivity('Right-Click Attempt', {
-            element: e.target.tagName,
-            timestamp: Date.now()
-          });
-          e.preventDefault();
-        });
-        
-        // Monitor for developer tools opening
-        let devtools = { open: false, orientation: null };
-        setInterval(() => {
-          const threshold = 160;
-          const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-          const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-          
-          if (widthThreshold || heightThreshold) {
-            if (!devtools.open) {
-              devtools.open = true;
-              devtools.orientation = widthThreshold ? 'vertical' : 'horizontal';
-              logSuspiciousActivity('Developer Tools Detected', {
-                orientation: devtools.orientation,
-                timestamp: Date.now()
-              });
-            }
-          } else {
-            devtools.open = false;
-          }
-        }, 1000);
-      }
-      
-      // Security Monitoring
-      function setupSecurityMonitoring() {
-        // Monitor for iframe injection attempts
-        if (window.self !== window.top) {
-          logSuspiciousActivity('Iframe Injection Attempt', {
-            location: window.location.href,
-            timestamp: Date.now()
-          });
-          window.top.location = window.self.location;
-        }
-        
-        // Monitor for console access
-        const originalConsole = {
-          log: console.log,
-          warn: console.warn,
-          error: console.error
-        };
-        
-        console.log = function(...args) {
-          logSuspiciousActivity('Console Access Attempt', {
-            method: 'log',
-            args: args,
-            timestamp: Date.now()
-          });
-          originalConsole.log.apply(console, args);
-        };
-        
-        console.warn = function(...args) {
-          logSuspiciousActivity('Console Access Attempt', {
-            method: 'warn',
-            args: args,
-            timestamp: Date.now()
-          });
-          originalConsole.warn.apply(console, args);
-        };
-        
-        console.error = function(...args) {
-          logSuspiciousActivity('Console Access Attempt', {
-            method: 'error',
-            args: args,
-            timestamp: Date.now()
-          });
-          originalConsole.error.apply(console, args);
-        };
-      }
-      
-      // Logging System
-      function logSuspiciousActivity(type, data) {
-        const activity = {
-          type: type,
-          data: data,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href,
-          referrer: document.referrer
-        };
-        
-        securityState.suspiciousActivities.push(activity);
-        
-        // Keep only last 100 activities
-        if (securityState.suspiciousActivities.length > 100) {
-          securityState.suspiciousActivities.shift();
-        }
-        
-        // Log to console for monitoring
-        console.warn('🚨 Atividade Suspeita Detectada:', activity);
-        
-        // Store encrypted log
-        try {
-          const logs = JSON.parse(localStorage.getItem('security_logs') || '[]');
-          logs.push(activity);
-          localStorage.setItem('security_logs', JSON.stringify(logs.slice(-50))); // Keep last 50
-        } catch (error) {
-          console.error('Erro ao salvar log de segurança:', error);
-        }
-      }
-      
-      // Security Report
-      function generateSecurityReport() {
-        const report = {
-          timestamp: new Date().toISOString(),
-          sessionDuration: Date.now() - securityState.sessionStart,
-          totalRequests: securityState.requestCount,
-          formSubmissions: securityState.formSubmissions,
-          suspiciousActivities: securityState.suspiciousActivities.length,
-          blockedIPs: securityState.blockedIPs.size,
-          securityStatus: 'ACTIVE'
-        };
-        
-        return report;
-      }
-      
-      // Expose security functions globally
-      window.SecuritySystem = {
-        sanitizeInput,
-        encryptData,
-        decryptData,
-        validateFormSubmission,
-        setupRateLimiting,
-        logSuspiciousActivity,
-        generateSecurityReport,
-        getSecurityState: () => ({ ...securityState }),
-        
-        // DDoS Protection Functions
-        logDDoSAttack,
-        updateDDoSLevel,
-        applyDDoSMitigation,
-        getDDoSStatus: () => ({ ...SECURITY_CONFIG.ddosProtection }),
-        generateDDoSReport: () => {
-          const ddos = SECURITY_CONFIG.ddosProtection;
-          const ddosLogs = JSON.parse(localStorage.getItem('ddos_logs') || '[]');
-          return {
-            ddosMode: ddos.ddosMode,
-            ddosLevel: ddos.ddosLevel,
-            connectionCount: ddos.connectionHistory.size,
-            attackCount: ddosLogs.length,
-            lastAttack: ddosLogs.length > 0 ? ddosLogs[ddosLogs.length - 1] : null,
-            mitigationStrategies: ddos.mitigationStrategies
-          };
-        }
-      };
-      
-             // Initialize security system
-       initSecurity();
-       
-       // Update security status indicator
-       function updateSecurityStatus() {
-         const statusElement = document.getElementById('securityStatus');
-         if (!statusElement) return;
-         
-         const state = securityState;
-         const suspiciousCount = state.suspiciousActivities.length;
-         const ddos = SECURITY_CONFIG.ddosProtection;
-         
-         // Check DDoS level first (highest priority)
-         if (ddos.ddosLevel >= 3) {
-           statusElement.textContent = '🚨';
-           statusElement.className = 'security-status danger';
-           statusElement.title = `DDoS CRÍTICO - Nível ${ddos.ddosLevel}/3`;
-         } else if (ddos.ddosLevel >= 2) {
-           statusElement.textContent = '⚠️';
-           statusElement.className = 'security-status warning';
-           statusElement.title = `DDoS ATIVO - Nível ${ddos.ddosLevel}/3`;
-         } else if (suspiciousCount === 0) {
-           statusElement.textContent = '🛡️';
-           statusElement.className = 'security-status';
-           statusElement.title = 'Sistema de Segurança Ativo';
-         } else if (suspiciousCount < 3) {
-           statusElement.textContent = '⚠️';
-           statusElement.className = 'security-status warning';
-           statusElement.title = 'Atividade Suspeita Detectada';
-         } else {
-           statusElement.textContent = '🚨';
-           statusElement.className = 'security-status danger';
-           statusElement.title = 'Múltiplas Atividades Suspeitas';
-         }
-       }
-       
-       // Make security status clickable
-       document.addEventListener('DOMContentLoaded', function() {
-         const statusElement = document.getElementById('securityStatus');
-         if (statusElement) {
-           statusElement.addEventListener('click', function() {
-             mostrarDashboardSeguranca();
-           });
-           
-           // Update status every 30 seconds
-           setInterval(updateSecurityStatus, 30000);
-           updateSecurityStatus(); // Initial update
-         }
-       });
-       
-     })();
-  </script>
 
   
   <style>
@@ -920,45 +78,6 @@
       color: #f0e6ff;
       text-shadow: 0 0 15px #e0b1ff;
       transform: scale(1.05);
-    }
-
-    .security-status {
-      color: #28a745;
-      font-size: 1.2em;
-      margin-right: 15px;
-      animation: pulse 2s infinite;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .security-status:hover {
-      color: #20c997;
-      transform: scale(1.1);
-    }
-
-    .security-status.warning {
-      color: #ffc107;
-      animation: pulse-warning 1s infinite;
-    }
-
-    .security-status.danger {
-      color: #dc3545;
-      animation: pulse-danger 0.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    @keyframes pulse-warning {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    @keyframes pulse-danger {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
     }
 
     .nav-menu {
@@ -1698,7 +817,6 @@
    <nav class="navbar">
      <div class="nav-container">
        <a href="#inicio" class="nav-logo">Info Tech Center</a>
-       <div class="security-status" id="securityStatus" title="Status de Segurança">🛡️</div>
        <button class="nav-toggle" id="navToggle">☰</button>
        <ul class="nav-menu" id="navMenu">
          <li><a href="#inicio">Início</a></li>
@@ -1849,14 +967,9 @@
          <h3>✅ Chamado Enviado com Sucesso!</h3>
          <p>Entraremos em contato em até 2 horas.</p>
          <p>Número do chamado: <strong id="numeroChamado"></strong></p>
-                   <p style="margin-top: 15px; font-size: 0.9em;">🔒 Dados criptografados e salvos localmente</p>
-          <p style="margin-top: 5px; font-size: 0.9em;">⚡ Processamento otimizado para máxima velocidade</p>
-          <p style="margin-top: 5px; font-size: 0.9em;">📱 Abrindo WhatsApp para envio dos dados</p>
-          <button onclick="visualizarChamados()" style="margin-top: 15px; background: #4a90e2; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">📋 Ver Chamados Salvos</button>
-          <button onclick="mostrarDashboardSeguranca()" style="margin-top: 10px; background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">🛡️ Status de Segurança</button>
-          <button onclick="exportarLogsDDoS()" style="margin-top: 10px; background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">🛡️ Exportar Logs DDoS</button>
-          <button onclick="limparDadosSeguranca()" style="margin-top: 10px; background: #ffc107; color: #333; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">🔄 Resetar Segurança</button>
-          <button onclick="testarSistemaChamados()" style="margin-top: 10px; background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">🧪 Testar Sistema</button>
+         <p style="margin-top: 15px; font-size: 0.9em;">💾 Dados salvos localmente</p>
+         <p style="margin-top: 5px; font-size: 0.9em;">📱 Abrindo WhatsApp para envio dos dados</p>
+         <button onclick="visualizarChamados()" style="margin-top: 15px; background: #4a90e2; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9em;">📋 Ver Chamados Salvos</button>
        </div>
     </div>
   </section>
@@ -1982,28 +1095,9 @@
        }
      });
 
-         // Sistema de Chamado Melhorado com Segurança Anti-Hacker
+         // Sistema de Chamado Melhorado
      document.getElementById('chamadoForm').addEventListener('submit', function(e) {
        e.preventDefault();
-       
-       // 🔒 VALIDAÇÃO DE SEGURANÇA
-       if (!window.SecuritySystem) {
-         console.error('Sistema de segurança não carregado');
-         alert('Erro de segurança: Sistema não inicializado');
-         return;
-       }
-       
-       // Verificar rate limiting - mais permissivo
-       if (!window.SecuritySystem.setupRateLimiting()) {
-         console.log('Rate limiting detectado, mas permitindo continuar...');
-         // Não bloqueia mais, apenas registra
-       }
-       
-       // Verificar limite de envios de formulário - mais permissivo
-       if (!window.SecuritySystem.validateFormSubmission()) {
-         console.log('Limite de envios detectado, mas permitindo continuar...');
-         // Não bloqueia mais, apenas registra
-       }
        
        // Mostrar loading
        document.getElementById('loadingMessage').style.display = 'block';
@@ -2012,81 +1106,67 @@
        // Desabilitar botão
        const submitBtn = this.querySelector('.btn-submit');
        const originalText = submitBtn.textContent;
-       submitBtn.textContent = '🔒 Verificando...';
+       submitBtn.textContent = '📤 Enviando...';
        submitBtn.disabled = true;
        
-       // Processamento RÁPIDO - sem delays artificiais
-       // Gerar número do chamado
-       const numeroChamado = 'CHM' + Date.now().toString().slice(-6);
-       
-       // Coletar dados do formulário com SANITIZAÇÃO RÁPIDA
-       const formData = new FormData(this);
-       const dados = {
-         numero: numeroChamado,
-         nome: window.SecuritySystem.sanitizeInput(formData.get('nome')),
-         telefone: window.SecuritySystem.sanitizeInput(formData.get('telefone')),
-         email: window.SecuritySystem.sanitizeInput(formData.get('email')),
-         servico: window.SecuritySystem.sanitizeInput(formData.get('servico')),
-         urgencia: window.SecuritySystem.sanitizeInput(formData.get('urgencia')),
-         descricao: window.SecuritySystem.sanitizeInput(formData.get('descricao')),
-         endereco: window.SecuritySystem.sanitizeInput(formData.get('endereco')),
-         data: new Date().toLocaleString('pt-BR')
-       };
-       
-       // 🔒 CRIPTOGRAFAR DADOS SENSÍVEIS
-       const dadosChamado = {
-         numero: numeroChamado,
-         nome: dados.nome,
-         telefone: dados.telefone,
-         email: dados.email || 'Não informado',
-         servico: dados.servico,
-         urgencia: dados.urgencia,
-         descricao: dados.descricao,
-         endereco: dados.endereco || 'Não informado',
-         data: dados.data
-       };
-       
-       // Salvar dados CRIPTOGRAFADOS localmente
-       try {
-         const chamadosSalvos = JSON.parse(localStorage.getItem('chamados') || '[]');
+       // Simular delay de envio
+       setTimeout(() => {
+         // Gerar número do chamado
+         const numeroChamado = 'CHM' + Date.now().toString().slice(-6);
          
-         // Criptografar dados antes de salvar
-         const dadosCriptografados = window.SecuritySystem.encryptData(dadosChamado);
-         if (dadosCriptografados) {
-           chamadosSalvos.push({
-             encrypted: dadosCriptografados,
-             timestamp: Date.now()
-           });
+         // Coletar dados do formulário
+         const formData = new FormData(this);
+         const dados = {
+           numero: numeroChamado,
+           nome: formData.get('nome'),
+           telefone: formData.get('telefone'),
+           email: formData.get('email'),
+           servico: formData.get('servico'),
+           urgencia: formData.get('urgencia'),
+           descricao: formData.get('descricao'),
+           endereco: formData.get('endereco'),
+           data: new Date().toLocaleString('pt-BR')
+         };
+         
+         // Preparar dados para envio
+         const dadosChamado = {
+           numero: numeroChamado,
+           nome: dados.nome,
+           telefone: dados.telefone,
+           email: dados.email || 'Não informado',
+           servico: dados.servico,
+           urgencia: dados.urgencia,
+           descricao: dados.descricao,
+           endereco: dados.endereco || 'Não informado',
+           data: dados.data
+         };
+         
+         // Salvar dados localmente (localStorage)
+         try {
+           const chamadosSalvos = JSON.parse(localStorage.getItem('chamados') || '[]');
+           chamadosSalvos.push(dadosChamado);
            localStorage.setItem('chamados', JSON.stringify(chamadosSalvos));
-           
-           // Log de atividade segura
-           window.SecuritySystem.logSuspiciousActivity('Form Submission Success', {
-             numeroChamado: numeroChamado,
-             timestamp: Date.now()
-           });
+         } catch (error) {
+           console.error('Erro ao salvar dados localmente:', error);
          }
-       } catch (error) {
-         console.error('Erro ao salvar dados criptografados:', error);
-         window.SecuritySystem.logSuspiciousActivity('Data Save Error', { error: error.message });
-       }
-       
-       // Esconder loading e mostrar sucesso IMEDIATAMENTE
-       document.getElementById('loadingMessage').style.display = 'none';
-       document.getElementById('numeroChamado').textContent = numeroChamado;
-       document.getElementById('successMessage').style.display = 'block';
-       
-       // Limpar formulário
-       this.reset();
-       
-       // Restaurar botão
-       submitBtn.textContent = originalText;
-       submitBtn.disabled = false;
-       
-       // Scroll para a mensagem de sucesso
-       document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
-       
-       // Enviar dados via WhatsApp (opcional)
-       const mensagem = `*NOVO CHAMADO - Info Tech Center*
+         
+         // Esconder loading e mostrar sucesso
+         document.getElementById('loadingMessage').style.display = 'none';
+         document.getElementById('numeroChamado').textContent = numeroChamado;
+         document.getElementById('successMessage').style.display = 'block';
+         
+         // Limpar formulário
+         this.reset();
+         
+         // Restaurar botão
+         submitBtn.textContent = originalText;
+         submitBtn.disabled = false;
+         
+         // Scroll para a mensagem de sucesso
+         document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+         
+         // Enviar dados via WhatsApp (opcional)
+         const mensagem = `*NOVO CHAMADO - Info Tech Center*
 
 *Número:* ${numeroChamado}
 *Nome:* ${dados.nome}
@@ -2097,97 +1177,19 @@
 *Descrição:* ${dados.descricao}
 *Endereço:* ${dados.endereco || 'Não informado'}
 *Data:* ${dados.data}`;
-       
-       const urlWhatsApp = `https://wa.me/5511994600652?text=${encodeURIComponent(mensagem)}`;
-       
-       // Abrir WhatsApp automaticamente após 1 segundo (reduzido)
-       setTimeout(() => {
-         window.open(urlWhatsApp, '_blank');
-       }, 1000);
+         
+         const urlWhatsApp = `https://wa.me/5511994600652?text=${encodeURIComponent(mensagem)}`;
+         
+         // Abrir WhatsApp automaticamente após 2 segundos
+         setTimeout(() => {
+           window.open(urlWhatsApp, '_blank');
+         }, 2000);
+       }, 2000); // Simular 2 segundos de processamento
      });
 
-     // Função para testar o sistema de chamados
-     function testarSistemaChamados() {
-       try {
-         console.log('🧪 Testando sistema de chamados...');
-         
-         // Verificar se o formulário existe
-         const form = document.getElementById('chamadoForm');
-         if (!form) {
-           alert('❌ Formulário de chamados não encontrado!');
-           return;
-         }
-         
-         // Verificar se o sistema de segurança está carregado
-         if (!window.SecuritySystem) {
-           alert('❌ Sistema de segurança não carregado!');
-           return;
-         }
-         
-         // Verificar localStorage
-         const chamados = JSON.parse(localStorage.getItem('chamados') || '[]');
-         console.log('📊 Chamados salvos:', chamados.length);
-         
-         // Verificar estado de segurança
-         const state = window.SecuritySystem.getSecurityState();
-         console.log('🔒 Estado de segurança:', state);
-         
-         // Verificar status DDoS
-         const ddos = window.SecuritySystem.getDDoSStatus();
-         console.log('🛡️ Status DDoS:', ddos);
-         
-         // Teste de performance
-         const startTime = performance.now();
-         const testData = { nome: 'Teste', telefone: '11999999999', email: 'teste@teste.com' };
-         const encrypted = window.SecuritySystem.encryptData(testData);
-         const decrypted = window.SecuritySystem.decryptData(encrypted);
-         const endTime = performance.now();
-         const performanceTime = (endTime - startTime).toFixed(2);
-         
-         alert(`✅ Teste concluído!\n\n📊 Chamados salvos: ${chamados.length}\n🔒 Formulário: OK\n🛡️ Segurança: ${window.SecuritySystem ? 'ATIVO' : 'INATIVO'}\n🚨 DDoS Level: ${ddos.ddosLevel}/3\n⚡ Performance: ${performanceTime}ms`);
-         
-       } catch (error) {
-         console.error('Erro no teste:', error);
-         alert('❌ Erro no teste: ' + error.message);
-       }
-     }
-     
-     // Função para limpar dados de segurança (para resolver problemas de bloqueio)
-     function limparDadosSeguranca() {
-       try {
-         // Limpar contadores de segurança
-         if (window.SecuritySystem) {
-           const state = window.SecuritySystem.getSecurityState();
-           state.requestCount = 0;
-           state.formSubmissions = 0;
-           state.lastRequestTime = Date.now();
-           state.lastFormSubmission = Date.now();
-           state.suspiciousActivities = [];
-           
-           // Limpar dados DDoS
-           const ddos = window.SecuritySystem.getDDoSStatus();
-           ddos.ddosMode = false;
-           ddos.ddosLevel = 0;
-           ddos.connectionHistory.clear();
-           
-           console.log('✅ Dados de segurança limpos com sucesso!');
-           alert('✅ Sistema de segurança resetado! Os chamados devem funcionar normalmente agora.');
-         }
-       } catch (error) {
-         console.error('Erro ao limpar dados de segurança:', error);
-         alert('Erro ao limpar dados de segurança.');
-       }
-     }
-     
-     // Função para visualizar chamados salvos (com descriptografia)
+     // Função para visualizar chamados salvos
      function visualizarChamados() {
        try {
-         // 🔒 VERIFICAÇÃO DE SEGURANÇA
-         if (!window.SecuritySystem) {
-           alert('Sistema de segurança não disponível');
-           return;
-         }
-         
          const chamados = JSON.parse(localStorage.getItem('chamados') || '[]');
          
          if (chamados.length === 0) {
@@ -2195,219 +1197,28 @@
            return;
          }
          
-         // Mostrar dados descriptografados em um alert formatado
-         let mensagem = '🔒 CHAMADOS SALVOS (CRIPTOGRAFADOS):\n\n';
-         let chamadosDescriptografados = 0;
-         
+         // Mostrar dados em um alert formatado
+         let mensagem = '📋 CHAMADOS SALVOS:\n\n';
          chamados.forEach((chamado, index) => {
-           try {
-             // Descriptografar dados
-             if (chamado.encrypted) {
-               const dadosDescriptografados = window.SecuritySystem.decryptData(chamado.encrypted);
-               if (dadosDescriptografados) {
-                 mensagem += `🔸 Chamado #${index + 1}\n`;
-                 mensagem += `Número: ${dadosDescriptografados.numero}\n`;
-                 mensagem += `Nome: ${dadosDescriptografados.nome}\n`;
-                 mensagem += `Telefone: ${dadosDescriptografados.telefone}\n`;
-                 mensagem += `E-mail: ${dadosDescriptografados.email}\n`;
-                 mensagem += `Serviço: ${dadosDescriptografados.servico}\n`;
-                 mensagem += `Urgência: ${dadosDescriptografados.urgencia}\n`;
-                 mensagem += `Descrição: ${dadosDescriptografados.descricao}\n`;
-                 mensagem += `Endereço: ${dadosDescriptografados.endereco}\n`;
-                 mensagem += `Data: ${dadosDescriptografados.data}\n`;
-                 mensagem += '─'.repeat(30) + '\n\n';
-                 chamadosDescriptografados++;
-               }
-             } else {
-               // Dados antigos não criptografados (compatibilidade)
-               mensagem += `🔸 Chamado #${index + 1} (Legado)\n`;
-               mensagem += `Número: ${chamado.numero}\n`;
-               mensagem += `Nome: ${chamado.nome}\n`;
-               mensagem += `Telefone: ${chamado.telefone}\n`;
-               mensagem += `E-mail: ${chamado.email}\n`;
-               mensagem += `Serviço: ${chamado.servico}\n`;
-               mensagem += `Urgência: ${chamado.urgencia}\n`;
-               mensagem += `Descrição: ${chamado.descricao}\n`;
-               mensagem += `Endereço: ${chamado.endereco}\n`;
-               mensagem += `Data: ${chamado.data}\n`;
-               mensagem += '─'.repeat(30) + '\n\n';
-               chamadosDescriptografados++;
-             }
-           } catch (decryptError) {
-             console.error('Erro ao descriptografar chamado:', decryptError);
-             mensagem += `🔸 Chamado #${index + 1} (Erro de descriptografia)\n`;
-             mensagem += '─'.repeat(30) + '\n\n';
-           }
-         });
-         
-         if (chamadosDescriptografados === 0) {
-           alert('Nenhum chamado válido encontrado.');
-           return;
-         }
-         
-         // Log de acesso aos dados
-         window.SecuritySystem.logSuspiciousActivity('Data Access', {
-           chamadosAcessados: chamadosDescriptografados,
-           timestamp: Date.now()
+           mensagem += `🔸 Chamado #${index + 1}\n`;
+           mensagem += `Número: ${chamado.numero}\n`;
+           mensagem += `Nome: ${chamado.nome}\n`;
+           mensagem += `Telefone: ${chamado.telefone}\n`;
+           mensagem += `E-mail: ${chamado.email}\n`;
+           mensagem += `Serviço: ${chamado.servico}\n`;
+           mensagem += `Urgência: ${chamado.urgencia}\n`;
+           mensagem += `Descrição: ${chamado.descricao}\n`;
+           mensagem += `Endereço: ${chamado.endereco}\n`;
+           mensagem += `Data: ${chamado.data}\n`;
+           mensagem += '─'.repeat(30) + '\n\n';
          });
          
          alert(mensagem);
        } catch (error) {
          console.error('Erro ao visualizar chamados:', error);
-         window.SecuritySystem.logSuspiciousActivity('Data Access Error', { error: error.message });
          alert('Erro ao carregar os chamados salvos.');
        }
      }
-     
-     // Dashboard de Segurança Anti-Hacker
-     function mostrarDashboardSeguranca() {
-       try {
-         if (!window.SecuritySystem) {
-           alert('Sistema de segurança não disponível');
-           return;
-         }
-         
-         const report = window.SecuritySystem.generateSecurityReport();
-         const state = window.SecuritySystem.getSecurityState();
-         
-         let dashboard = '🛡️ DASHBOARD DE SEGURANÇA ANTI-HACKER & ANTI-DDoS\n\n';
-         dashboard += `📊 Status: ${report.securityStatus}\n`;
-         dashboard += `⏱️ Duração da Sessão: ${Math.round(report.sessionDuration / 60000)} minutos\n`;
-         dashboard += `📈 Total de Requisições: ${report.totalRequests}\n`;
-         dashboard += `📝 Envios de Formulário: ${report.formSubmissions}\n`;
-         dashboard += `🚨 Atividades Suspeitas: ${report.suspiciousActivities}\n`;
-         dashboard += `🚫 IPs Bloqueados: ${report.blockedIPs}\n`;
-         
-         // DDoS Information
-         const ddos = SECURITY_CONFIG.ddosProtection;
-         dashboard += `🛡️ Status DDoS: ${ddos.ddosMode ? 'ATIVO' : 'NORMAL'}\n`;
-         dashboard += `🚨 Nível DDoS: ${ddos.ddosLevel}/3\n`;
-         dashboard += `🔗 Conexões Ativas: ${ddos.connectionHistory.size}\n`;
-         
-         // Get DDoS logs
-         const ddosLogs = JSON.parse(localStorage.getItem('ddos_logs') || '[]');
-         dashboard += `📊 Ataques DDoS Detectados: ${ddosLogs.length}\n\n`;
-         
-         dashboard += '🔍 ÚLTIMAS ATIVIDADES SUSPEITAS:\n';
-         if (state.suspiciousActivities.length > 0) {
-           state.suspiciousActivities.slice(-5).forEach((activity, index) => {
-             dashboard += `${index + 1}. ${activity.type} - ${new Date(activity.timestamp).toLocaleTimeString()}\n`;
-           });
-         } else {
-           dashboard += '✅ Nenhuma atividade suspeita detectada\n';
-         }
-         
-         dashboard += '\n🔐 PROTEÇÕES ATIVAS:\n';
-         dashboard += '✅ Rate Limiting\n';
-         dashboard += '✅ Input Sanitization\n';
-         dashboard += '✅ Data Encryption\n';
-         dashboard += '✅ XSS Protection\n';
-         dashboard += '✅ Bot Detection\n';
-         dashboard += '✅ Session Management\n';
-         dashboard += '✅ Activity Monitoring\n';
-         dashboard += '🛡️ DDoS Protection\n';
-         dashboard += '🛡️ Connection Tracking\n';
-         dashboard += '🛡️ Resource Limiting\n';
-         dashboard += '🛡️ Request Filtering\n';
-         dashboard += '🛡️ Emergency Mode\n';
-         
-         dashboard += '\n📊 AÇÕES:\n';
-         dashboard += '1. Clique OK para fechar\n';
-         dashboard += '2. Use "Exportar Logs" para backup\n';
-         
-         alert(dashboard);
-         
-         // Log de acesso ao dashboard
-         window.SecuritySystem.logSuspiciousActivity('Security Dashboard Access', {
-           timestamp: Date.now()
-         });
-       } catch (error) {
-         console.error('Erro ao mostrar dashboard:', error);
-         alert('Erro ao carregar dashboard de segurança.');
-       }
-     }
-   
-   // Exportar logs de segurança
-   function exportarLogsSeguranca() {
-     try {
-       if (!window.SecuritySystem) {
-         alert('Sistema de segurança não disponível');
-         return;
-       }
-       
-       const logs = JSON.parse(localStorage.getItem('security_logs') || '[]');
-       const state = window.SecuritySystem.getSecurityState();
-       const report = window.SecuritySystem.generateSecurityReport();
-       
-       const exportData = {
-         timestamp: new Date().toISOString(),
-         securityReport: report,
-         securityState: state,
-         securityLogs: logs
-       };
-       
-       const dataStr = JSON.stringify(exportData, null, 2);
-       const dataBlob = new Blob([dataStr], { type: 'application/json' });
-       
-       const link = document.createElement('a');
-       link.href = URL.createObjectURL(dataBlob);
-       link.download = `security_logs_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
-       link.click();
-       
-       // Log de exportação
-       window.SecuritySystem.logSuspiciousActivity('Security Logs Exported', {
-         logsCount: logs.length,
-         timestamp: Date.now()
-       });
-       
-       alert('📊 Logs de segurança exportados com sucesso!');
-       
-     } catch (error) {
-       console.error('Erro ao exportar logs:', error);
-       alert('Erro ao exportar logs de segurança.');
-     }
-   }
-   
-   // Exportar logs DDoS específicos
-   function exportarLogsDDoS() {
-     try {
-       const ddosLogs = JSON.parse(localStorage.getItem('ddos_logs') || '[]');
-       const ddos = SECURITY_CONFIG.ddosProtection;
-       
-       const exportData = {
-         timestamp: new Date().toISOString(),
-         ddosProtection: {
-           ddosMode: ddos.ddosMode,
-           ddosLevel: ddos.ddosLevel,
-           connectionHistory: Array.from(ddos.connectionHistory.entries()),
-           mitigationStrategies: ddos.mitigationStrategies
-         },
-         ddosLogs: ddosLogs
-       };
-       
-       const dataStr = JSON.stringify(exportData, null, 2);
-       const dataBlob = new Blob([dataStr], { type: 'application/json' });
-       
-       const link = document.createElement('a');
-       link.href = URL.createObjectURL(dataBlob);
-       link.download = `ddos_logs_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
-       link.click();
-       
-       // Log de exportação DDoS
-       if (window.SecuritySystem) {
-         window.SecuritySystem.logSuspiciousActivity('DDoS Logs Exported', {
-           logsCount: ddosLogs.length,
-           timestamp: Date.now()
-         });
-       }
-       
-       alert('🛡️ Logs DDoS exportados com sucesso!');
-       
-     } catch (error) {
-       console.error('Erro ao exportar logs DDoS:', error);
-       alert('Erro ao exportar logs DDoS.');
-     }
-   }
   </script>
 
   <!-- Schema.org structured data -->
